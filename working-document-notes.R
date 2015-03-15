@@ -1,28 +1,24 @@
 ---
-title: "Replication Report"
+  title: "replication report" <-- Our Working Document/ideas for extensions
 author: "Yari & Kyonne" 
-date: "March 15, 2015"
+date: "February 22, 2015"
 output: html_document
 ---
-
-Structure of Report: 
-(1) Display reproduced table for Study 3 results 
+  
+  Plan for replication project
+(1) Showing abbreviated version of the table 
 (2) Explain what that table displays 
-(3) R code
+(3) R code to get there
+----
+  Plan for added components for replication project (due later)
+(1) power analyses - with and without excluded participants
+(2) moderation analysis by gender
+(3) graph the results with ggplot2
 
+##In order to not show table, {r, eval = FALSE}
+##In order to not show code, {r, echo = FALSE}
 
 3: R code
-```{r, echo = FALSE}
-
-#(1) CODE FOR TABLE ONLY GOES HERE: <---delete this.
-
-```
-
-(2) Explanation: 
-The table above is a reproduction of the frequencies and percentages of subjects' choice for advertised and non-advertised pen in the Liked Music & Disliked Music conditions in Study 3. Note that at the bottom of the table is also the chi-square statistic, p-value and effect size (phi) for the data, indicating a medium-sized effect of music condition on pen choice. The table also demonstrates that the frequency of choice in the Disliked Music condition was in the hypothesized direction: Subjects tended to choose the non-advertised pen when made to listen to disliked music in an advertisement.
-
-Note that the data represented above follows the exclusion criteria set forth in the published article. Specifically, any subjects who had participated in a prior version of the study were excluded (two subjects). In addition, 19 subjects were excluded for their so-called "deviant music evaluations". These subjects were foundd to either somewhat dislike the "liked music" (music attiude score below 3) or somewhat like the "disliked music" (music attitude score above 3).
-
 ```{r, eval= FALSE}
 # (3) Code for analyses & table:
 
@@ -72,6 +68,12 @@ pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)
 # Power analysis -- Find the effect size for a test with .8 sensitivity:
 pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
 
+# Chi-Square tests - more conservative, not in the paper: 
+## With Yate's correction:
+# chisq.test(tbl)
+## No correction but a Monte Carlo simulation:
+# chisq.test(tbl, simulate.p.value = TRUE)
+
 # Analyses on SUBSETTED sample:
 
 # Filter out additional 19 Ss with too positive attitudes in "disliked music" condition & too negative attitudes in "liked music" condition:
@@ -117,11 +119,17 @@ pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
 # Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
 pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
 
-# Confidence Intervals (not replicated from paper):
+# Confidence Intervals (not replicated in paper):
 #upper (95%)
 #CI95_up <- qchisq(.95, df = 1)
 #lower (5%)
 #CI95_low <- qchisq(.05, df = 1)
+
+# Other Chi-Square tests - more conservative, not in the paper: 
+## With Yate's correction:
+# chisq.test(tbl2)
+## No correction but a Monte Carlo simulation:
+# chisq.test(tbl2, simulate.p.value = TRUE)
 
 # CODE FOR TABLE HERE:
 
@@ -131,4 +139,55 @@ pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the table. Further, the "eval = FALSE" parameter was added to the top code chunk to prevent printing of the code.
+```{r}
+
+#center predictor variable (using blanks for variable name until we get the translated documents:
+dat$X.center<-scale(dat$X, center=TRUE, scale=FALSE)
+
+#set moderator as a factor
+dat$M<-as.factor(dat$M)
+
+#Test for homogeneity of variance:
+leveneTest(dat$X ~ dat$M, center = mean)
+
+#simple effect of centered predictor on Y
+model.centered<-lm(dat$______ ~ dat$______.center)
+summary(model.centered)
+
+#centered models:
+m1.cent<-lm(dat$Y ~ dat$X.center 
+            + dat$M)
+summary(m1.cent)
+
+m2.cent<-lm(dat$Y ~ dat$X.center 
+            + dat$M
+            + (dat$X.center*dat$M))
+summary(m2.cent)
+
+#compare models
+anova(m1.cent, m2.cent)
+
+
+
+```
+
+Graph results of moderation analysis
+
+```{r, echo=FALSE}
+##Scatterplots
+graph.simple = ggplot(dat, aes(x = wmc.center, y = stroop.rt)) 
+graph.simple + geom_smooth(method = "lm") +
+  geom_point() +
+  ggtitle("Simple Effect of Working Memory on Stroop Performance (RT)") +
+  ylab("Stroop RT") +
+  xlab("Working Memory Deviation Score from Mean")
+
+graph.moderator = ggplot(dat, aes(x = X.center, y = Y, colour = M)) 
+graph.moderator + geom_smooth(method = "lm") +
+  geom_point() +
+  ggtitle("Working Memory on Stroop Performance (RT)") +
+  ylab("Stroop RT") +
+  xlab("Working Memory Deviation Score from Mean")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
