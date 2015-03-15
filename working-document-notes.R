@@ -1,7 +1,7 @@
 ---
   title: "replication report" <-- Our Working Document/ideas for extensions
 author: "Yari & Kyonne" 
-date: "February 22, 2015"
+date: 
 output: html_document
 ---
   
