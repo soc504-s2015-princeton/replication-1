@@ -6,12 +6,16 @@ output: html_document
 ---
 
 Plan for replication project
-(1) power analyses - with and without outliers
+(1) Showing abbreviated version of the table 
+(2) Explain what that table displays 
+(3) R code to get there
+----
+Plan for added components for replication project (due later)
+(1) power analyses - with and without excluded participants
 (2) moderation analysis by gender
 (3) graph the results with ggplot2
 
-
-1: Get data
+3: R code
 ```{r}
 #load packages:
 library(pwr)
@@ -25,8 +29,13 @@ library(lsr)
 
 #load data:
 dat <- read.csv("GORN_study3.csv", header = TRUE)
+dat <- tbl_df(dat)
 head(dat)
-View(dat)
+#View(dat)
+
+
+
+??describe()
 
 #center predictor variable (using blanks for variable name until we get the translated documents:
 dat$X.center<-scale(dat$X, center=TRUE, scale=FALSE)
