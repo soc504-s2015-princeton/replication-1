@@ -79,20 +79,20 @@ pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
 # Filter out additional 19 Ss with too positive attitudes in "disliked music" condition & too negative attitudes in "liked music" condition:
 
 # Find Cronbach's Alpha for music attitudes scale (for comparison with article):
-#dat_music <- dat_e %>%
-#  select(att_muz1, att_muz2, att_muz3)
-#View(dat_music)
-#alpha(dat_music, na.rm = TRUE, delete=TRUE)
+# dat_music <- dat_e %>%
+# select(att_muz1, att_muz2, att_muz3) 
+# View(dat_music)
+# alpha(dat_music, na.rm = TRUE, delete=TRUE)
 
 #Find mean attitudes for each music condition (for comparison with article): 
-#dat_e %>%
-#  group_by(music) %>%
-#  summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
+dat_e %>%
+ group_by(music) %>%
+summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
 
 # Add mean attitude column to dataframe:
 dat_e <- dat_e %>%
   mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
-#View(dat_e)
+View(dat_e)
 
 #Check that means (for comparison with article):
 #dat_e %>%
@@ -102,7 +102,7 @@ dat_e <- dat_e %>%
 # Exclude when average attitude > 3 in disliked cond. or average attitude <3 for liked cond. (1 == liked music, 2 == disliked music)
 dat_egood <- dat_e %>%
   filter(music == 1 & avg_att_muz > 3 | music == 2 & avg_att_muz < 3)
-#View(dat_egood)
+View(dat_egood)
 
 ## Redo Chi-Square with subsetted data:
 
@@ -132,12 +132,52 @@ pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
 # chisq.test(tbl2, simulate.p.value = TRUE)
 
 # CODE FOR TABLE HERE:
+install.packages("tables")
+library(tables)
+install.packages("mosaic")
+library(mosaic)
+install.packages("stargazer")
+library(stargazer)
+install.packages("xtable")
+library(xtable)
 
+
+# using tables function, doesnt work as planned
+(tabular(dat_egood$music ~ (n=1) + Format(digits=2)* 
+          (dat_egood$chose_advertised_pen)* (n), data=dat_egood)))
+
+#not what expected
+mosaicplot(freqtable)
+
+# better
+attach(dat_egood)
+freqtable<-table(dat_egood$music,dat_egood$chose_advertised_pen)
+freqtable
+margin.table(freqtable, 0)
+margin.table(freqtable, 1)
+prop.table(freqtable)
+prop.table(freqtable, 0)
+prop.table(freqtable, 1)
+
+# trying stargazer... no good
+stargazer(dat_egood[c("")], type= "text", title= "Frequencies...", digits=2, out="freqtable.txt")
+
+
+#
+tbl2<-tbl_df(tbl2)
+print(xtable(tbl2), type="html")
+      
+      
+      
 # Create Frequency tallies for replicating the table:
 ##(chose_ad_pen_reversed: 1 == chose non-advertised, 0 == chose advertised)
 ##(chose_advertised_pen: 1 == chose advertised pen, 0 == chose non-advertised pen)
 
 ```
+library(plyr)
+
+(dat_egood$music, dat_egood$chose_advertised_pen)
+cs2 #is the chi square stuff
 
 ```{r}
 
