@@ -143,8 +143,15 @@ library(xtable)
 
 
 # using tables function, doesnt work as planned
-(tabular(dat_egood$music ~ (n=1) + Format(digits=2)* 
-          (dat_egood$chose_advertised_pen)* (n), data=dat_egood)))
+csvtable<-tbl_df("Experiment3_ReplicationTable_csv.csv")
+view(csvtable)
+
+
+
+
+tabular(dat_egood$music + 1) ~ (n+1) + Format(digits=2)* 
+          (dat_egood$chose_advertised_pen)* (n+ proportions), data=dat_egood)))
+
 
 #not what expected
 mosaicplot(freqtable)
@@ -153,11 +160,14 @@ mosaicplot(freqtable)
 attach(dat_egood)
 freqtable<-table(dat_egood$music,dat_egood$chose_advertised_pen)
 freqtable
-margin.table(freqtable, 0)
 margin.table(freqtable, 1)
+margin.table(freqtable, 2)
 prop.table(freqtable)
-prop.table(freqtable, 0)
-prop.table(freqtable, 1)
+proportions <-prop.table(freqtable, 1)
+proportions
+prop.table(freqtable, 2)
+
+
 
 # trying stargazer... no good
 stargazer(dat_egood[c("")], type= "text", title= "Frequencies...", digits=2, out="freqtable.txt")
