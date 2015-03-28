@@ -1,134 +1,136 @@
 ---
-title: "Replication Report"
+title: "replication_report"
 author: "Yari & Kyonne" 
-date: "March 15, 2015"
+date: "February 22, 2015"
 output: html_document
 ---
 
-Structure of Report: 
-(1) Display reproduced table for Study 3 results 
-(2) Explain what that table displays 
-(3) R code
+Plan for replication project
+(1) power analyses - with and without outliers
+(2) moderation analysis by gender
+(3) graph the results with ggplot2
 
 
-3: R code
-```{r, echo = FALSE}
-
-#(1) CODE FOR TABLE ONLY GOES HERE: <---delete this.
-
-```
-
-(2) Explanation: 
-The table above is a reproduction of the frequencies and percentages of subjects' choice for advertised and non-advertised pen in the Liked Music & Disliked Music conditions in Study 3. Note that at the bottom of the table is also the chi-square statistic, p-value and effect size (phi) for the data, indicating a medium-sized effect of music condition on pen choice. The table also demonstrates that the frequency of choice in the Disliked Music condition was in the hypothesized direction: Subjects tended to choose the non-advertised pen when made to listen to disliked music in an advertisement.
-
-Note that the data represented above follows the exclusion criteria set forth in the published article. Specifically, any subjects who had participated in a prior version of the study were excluded (two subjects). In addition, 19 subjects were excluded for their so-called "deviant music evaluations". These subjects were foundd to either somewhat dislike the "liked music" (music attiude score below 3) or somewhat like the "disliked music" (music attitude score above 3).
-
-```{r, eval= FALSE}
-# (3) Code for analyses & table:
-
-# Load packages
+1: Get data
+```{r}
+#load packages:
 library(pwr)
 library(dplyr)
-library(broom)
-library(tidyr)
+library(plyr)
 library(ggplot2)
 library(MBESS)
 library(psych)
 library(car)
 library(lsr)
-library(MASS)
 
-# Load data
+#load data:
 dat <- read.csv("GORN_study3.csv", header = TRUE)
-dat <- tbl_df(dat)
-#head(dat)
-#View(dat)
+dat <-tbl_df(dat)
+View(dat)
+dat %>%
+  filter(na.rm=TRUE) %>%
+  group_by(Groep) %>%
+  summarise(total.n = n())
 
-# Designate factors:
-dat$Groep <- as.factor(dat$Groep)
-dat$music <- as.factor(dat$music)
-dat$chose_advertised_pen <- as.factor(dat$chose_advertised_pen)
+by_group<-group_by(dat, Groep)
+mutate(distinct_groups= count(n_distinct(Groep))
+summarise(distinct_groups)
+count(dat, distinct_groups(N()))
 
-## Filter out 2 excluded participants who accidentily took study twice in the paper:
-dat_e <- dat %>%
-  filter(excluded == 0)
-#dat_e
-#View(dat_e)
+#GOT IT TO WORK:
+ddply(dat,.(Groep),
+      summarise,
+      count = length(form_nr1)
+      )
 
-# Analyses on ENTIRE sample:
+#center predictor variable (using blanks for variable name until we get the translated documents:
+dat$X.center<-scale(dat$X, center=TRUE, scale=FALSE)
 
-# Test whether music condition is independent of pen choice:
-# (1 == liked music, 2 == disliked music)
-# (0 == not chosen, 1 == chosen)
-tbl = table(dat_e$music, dat_e$chose_advertised_pen) 
-tbl    
+#set moderator as a factor
+dat$M<-as.factor(dat$M)
 
-# Chi-Square, no correction, no simulation:
-cs1 <- chisq.test(tbl, correct = FALSE)
+#Test for homogeneity of variance:
+leveneTest(dat$X ~ dat$M, center = mean)
 
-# Power analysis -- Find the power to detect .35 effect size reported in paper:
-pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)
+#simple effect of centered predictor on Y
+model.centered<-lm(dat$______ ~ dat$______.center)
+summary(model.centered)
 
-# Power analysis -- Find the effect size for a test with .8 sensitivity:
-pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
+#centered models:
+m1.cent<-lm(dat$Y ~ dat$X.center 
+            + dat$M)
+summary(m1.cent)
 
-# Analyses on SUBSETTED sample:
+m2.cent<-lm(dat$Y ~ dat$X.center 
+            + dat$M
+            + (dat$X.center*dat$M))
+summary(m2.cent)
 
-# Filter out additional 19 Ss with too positive attitudes in "disliked music" condition & too negative attitudes in "liked music" condition:
+#compare models
+anova(m1.cent, m2.cent)
 
-# Find Cronbach's Alpha for music attitudes scale (for comparison with article):
-#dat_music <- dat_e %>%
-#  select(att_muz1, att_muz2, att_muz3)
-#View(dat_music)
-#alpha(dat_music, na.rm = TRUE, delete=TRUE)
 
-#Find mean attitudes for each music condition (for comparison with article): 
-#dat_e %>%
-#  group_by(music) %>%
-#  summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
-
-# Add mean attitude column to dataframe:
-dat_e <- dat_e %>%
-  mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
-#View(dat_e)
-
-#Check that means (for comparison with article):
-#dat_e %>%
-#  group_by(music) %>%
-#  summarise(avg = mean(avg_att_muz))
-
-# Exclude when average attitude > 3 in disliked cond. or average attitude <3 for liked cond. (1 == liked music, 2 == disliked music)
-dat_egood <- dat_e %>%
-  filter(music == 1 & avg_att_muz > 3 | music == 2 & avg_att_muz < 3)
-#View(dat_egood)
-
-## Redo Chi-Square with subsetted data:
-
-# Test whether music condition is independent of pen choice:
-tbl2 = table(dat_egood$music, dat_egood$chose_advertised_pen) 
-tbl2    
-
-# Chi-Square, no correction, no simulation:
-cs2 <- chisq.test(tbl2, correct = FALSE)
-tidy(cs2)
-
-# Power analysis -- Find the power to detect .35 effect size reported in paper:
-pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
-# Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
-pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
-
-# Confidence Intervals (not replicated from paper):
-#upper (95%)
-#CI95_up <- qchisq(.95, df = 1)
-#lower (5%)
-#CI95_low <- qchisq(.05, df = 1)
-
+#Work on tables:
 # CODE FOR TABLE HERE:
+install.packages("tables")
+library(tables)
+install.packages("mosaic")
+library(mosaic)
+install.packages("stargazer")
+library(stargazer)
+install.packages("xtable")
+library(xtable)
 
-# Create Frequency tallies for replicating the table:
-##(chose_ad_pen_reversed: 1 == chose non-advertised, 0 == chose advertised)
-##(chose_advertised_pen: 1 == chose advertised pen, 0 == chose non-advertised pen)
+
+# using tables function, doesnt work as planned
+csvtable<-tbl_df("Experiment3_ReplicationTable_csv.csv")
+view(csvtable)
+
+
+tabular(dat_egood$music + 1) ~ (n+1) + Format(digits=2)* 
+          (dat_egood$chose_advertised_pen)* (n+ proportions), data=dat_egood)))
+
+#not what expected
+mosaicplot(freqtable)
+
+# better
+attach(dat_egood)
+freqtable<-table(dat_egood$music,dat_egood$chose_advertised_pen)
+freqtable
+margin.table(freqtable, 1)
+margin.table(freqtable, 2)
+prop.table(freqtable)
+proportions <-prop.table(freqtable, 1)
+proportions
+prop.table(freqtable, 2)
+
+# trying stargazer... no good
+stargazer(dat_egood[c("")], type= "text", title= "Frequencies...", digits=2, out="freqtable.txt")
+
+#
+tbl2<-tbl_df(tbl2)
+print(xtable(tbl2), type="html")
+      
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the table. Further, the "eval = FALSE" parameter was added to the top code chunk to prevent printing of the code.
+Graph results of moderation analysis
+
+```{r, echo=FALSE}
+##Scatterplots
+graph.simple = ggplot(dat, aes(x = wmc.center, y = stroop.rt)) 
+graph.simple + geom_smooth(method = "") +
+  geom_point() +
+  ggtitle("") +
+  ylab("") +
+  xlab("")
+
+graph.moderator = ggplot(dat, aes(x = X.center, y = Y, colour = M)) 
+graph.moderator + geom_smooth(method = "lm") +
+  geom_point() +
+  ggtitle("") +
+  ylab("") +
+  xlab("")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
