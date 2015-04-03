@@ -68,14 +68,18 @@ summary(m2.cent)
 
 #compare models
 anova(m1.cent, m2.cent)
-
-#Work on tables:
-#In another working document (because incomplete)
 ```
 
-Graph results of moderation analysis
-
 ```{r, echo=FALSE}
+#Work on tables:
+##Basic Table to show frequencies
+LikedMusic<- c("21(57%)","16(43%)", "")
+DislikedMusic<- c("8(23%)","27(77%)", "N= 72, χ²(1)= 8.59, p= .003,Φ=.35")
+Condition<- c("AdvertisedPen", "NonAdvertisedPen", "")
+dfFreq=cbind(Condition, LikedMusic, DislikedMusic)
+
+# Graph results of moderation analysis
+
 ##Scatterplots for add on to study graphs 
 graph.simple = ggplot(dat, aes(x = , y = )) 
 graph.simple + geom_smooth(method = "") +
