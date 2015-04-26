@@ -92,28 +92,74 @@ library(dplyr)
 #print(xtable(tbl2), type="html")
 
 ## Possible new contribution #1: Moderation analysis 
+#have to create dummy variables:
 
-#center predictor variable (using blanks for variable name until we get the translated documents:
-dat$X.center<-scale(dat$X, center=TRUE, scale=FALSE)
-#set moderator as a factor
-dat$M<-as.factor(dat$M)
-#Test for homogeneity of variance:
-leveneTest(dat$X ~ dat$M, center = mean)
-#simple effect of centered predictor on Y
-model.centered<-lm(dat$______ ~ dat$______.center)
-summary(model.centered)
-#centered models:
-m1.cent<-lm(dat$Y ~ dat$X.center 
-            + dat$M)
-summary(m1.cent)
+Music <- factor(dat_egood$music,
+                levels = c(1,2),
+                labels = c("LikedMusic", "DislikedMusic"))
 
-m2.cent<-lm(dat$Y ~ dat$X.center 
-            + dat$M
-            + (dat$X.center*dat$M))
-summary(m2.cent)
-#compare models
-anova(m1.cent, m2.cent)
+ChosenPen <- factor(dat_egood$chose_advertised_pen,
+                    levels = c(1,0),
+                    labels = c("ChoseAdPen", "NotChoseAdPen"))
 
+#figure out which is female and which is male in geslacht1
+count(dat_egood, geslacht1)
+
+# Gender dummy
+Gender <- factor(dat_egood$geslacht1,
+                 levels = c(1,2),
+                 labels = c("Male", "Female"))
+
+#a logistic regression
+install.packages("QuantPsyc")
+library(QuantPsyc)
+
+# for relationship between advertised pen and music, music 2 (disliked) seems significant, 
+# which is weird. 
+glm1 <- glm(ChosenPen ~ Music, data=dat_egood, family=binomial)
+summary(glm1)
+glm1prob<-predict(glm1, dat_egood, type="response")
+mean(glm1prob)
+
+# reversed previsious glm
+glm1a <- glm(Music ~ ChosenPen, data=dat_egood, family=binomial)
+summary(glm1a)
+glm1aprob<-predict(glm1a, dat_egood, type="response")
+mean(glm1aprob)
+
+# chosen pen outcome, music, and gender as moderator
+glm1b <- glm(ChosenPen ~ Music + Gender, data=dat_egood, family=binomial)
+summary(glm1b)
+glm1bprob<-predict(glm1b, dat_egood, type="response")
+mean(glm1bprob)
+
+# music as outcome, chosen pen, gender as moderator 
+glm1c <- glm(Music ~ ChosenPen + Gender, data=dat_egood, family=binomial)
+summary(glm1b)
+glm1cprob<-predict(glm1c, dat_egood, type="response")
+mean(glm1cprob)
+
+# basic gender on chosen pen
+glm1d <- glm(ChosenPen ~ Gender, data=dat_egood, family=binomial)
+summary(glm1d)
+glm1dprob<-predict(glm1d, dat_egood, type="response")
+mean(glm1dprob)
+
+#Groups to outcome
+glm2 <- glm(ChosenPen ~ dat_egood$Groep + Gender, data=dat_egood, family=binomial)
+summary(glm2)
+glm2prob<-predict(glm2, dat_egood, type="response")
+mean(glm2prob)
+
+#outcome is chosen pen, interaction between music and gender 
+glm2a <- glm(ChosenPen ~ Music:Gender, data=dat_egood, family=binomial)
+summary(glm2a)
+glm2aprob<-predict(glm2a, dat_egood, type="response")
+mean(glm2aprob)
+
+#color of pen chosen
+glm3<- glm(Music ~ dat_egood$pen_keus:Gender, data=dat_egood, family=binomial)
+summary(glm3)
 
 # Possible new contribution #2: Graph results of moderation analysis??
 
