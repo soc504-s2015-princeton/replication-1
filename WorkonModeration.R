@@ -125,27 +125,7 @@ Gender <- factor(dat_egood$geslacht1,
                     levels = c(1,2),
                     labels = c("Male", "Female"))
 
-#Test for homogeneity of variance:
-leveneTest(dat_egood$chose_advertised_pen ~ dat_egood$Male, center=mean)
-
-#simple effect of centered predictor on Y
-model.centered<-lm(dat_egood$chose_advertised_pen ~ dat_egood$Male)
-summary(model.centered)
-
-#centered models:
-m1.cent<-lm(dat_egood$chose_advertised_pen ~ dat_egood$Likedmusic.center 
-            + dat_egood$Male)
-summary(m1.cent)
-
-m2.cent<-lm(dat$Y ~ dat$X.center 
-            + dat$M
-            + (dat$X.center*dat$M))
-summary(m2.cent)
-
-#compare models
-anova(m1.cent, m2.cent)
-
-#More like a logistic regression
+#a logistic regression
 install.packages("QuantPsyc")
 library(QuantPsyc)
 
