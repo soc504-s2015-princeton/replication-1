@@ -107,82 +107,105 @@ pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
 ## No correction but a Monte Carlo simulation:
 # chisq.test(tbl2, simulate.p.value = TRUE)
 
-#have to create dummy variables:
+# Logistic Regressions
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(stargazer)
 
+
+#Create dummy variables:
 Music <- factor(dat_egood$music,
                     levels = c(1,2),
                     labels = c("LikedMusic", "DislikedMusic"))
+
+
+#Recode dummy variables:
+dat_egood$music <- as.numeric(dat_egood$music)
+dat_egood <- dat_egood %>%
+  mutate(music.recode2 = (music - 1))
+View(dat_egood)
+
+#Set factors:
+Music <- factor(dat_egood$music.recode2,
+                    levels = c(0, 1),
+                    labels = c("Liked", "DisLiked"))
 
 ChosenPen <- factor(dat_egood$chose_advertised_pen,
                 levels = c(1,0),
                 labels = c("ChoseAdPen", "NotChoseAdPen"))
 
-#figure out which is female and which is male in geslacht1
+#Compare counts of each gender in paper to data for coding:
 count(dat_egood, geslacht1)
+## 1 = male
+## 2 = female
 
 # need to check which is which:
 Gender <- factor(dat_egood$geslacht1,
                     levels = c(1,2),
                     labels = c("Male", "Female"))
 
-#a logistic regression
-install.packages("QuantPsyc")
-library(QuantPsyc)
+# for relationship between advertised pen and music, music 2 (disliked) seems significant:
+fit1 <- glm(ChosenPen ~ Music, data = dat_egood, family = binomial)
+fit1 <- tidy(fit1)
+fit1
 
-# for relationship between advertised pen and music, music 2 (disliked) seems significant, 
-# which is weird. 
-glm1 <- glm(ChosenPen ~ Music, data=dat_egood, family=binomial)
-summary(glm1)
-glm1prob<-predict(glm1, dat_egood, type="response")
-mean(glm1prob)
+#### calculate odds 
+fit1$estimate
+fit1$estimate[1] + fit1$estimate[2] ## 1.216
+## odds ratio
+exp(fit1$estimate[2]) ##4.43
+## predicted probabilities:
+# Disliked Music:
+(exp(fit1$estimate[1] + fit1$estimate[2])) / (1 + exp(fit1$estimate[1] + fit1$estimate[2]))
+# Liked Music: 
+exp(fit1$estimate[1]) / (1 + exp(fit1$estimate[1])) 
 
-# reversed previsious glm
-glm1a <- glm(Music ~ ChosenPen, data=dat_egood, family=binomial)
-summary(glm1a)
-glm1aprob<-predict(glm1a, dat_egood, type="response")
-mean(glm1aprob)
+# does the relationship change when looking ONLY at males & ONLY females?
 
-# chosen pen outcome, music, and gender as moderator
-glm1b <- glm(ChosenPen ~ Music + Gender, data=dat_egood, family=binomial)
-summary(glm1b)
-glm1bprob<-predict(glm1b, dat_egood, type="response")
-mean(glm1bprob)
+male.dat_egood <- dat_egood %>%
+  filter(geslacht1 == "1")
+#count(male.dat_egood, geslacht1)
 
-# music as outcome, chosen pen, gender as moderator 
-glm1c <- glm(Music ~ ChosenPen + Gender, data=dat_egood, family=binomial)
-summary(glm1b)
-glm1cprob<-predict(glm1c, dat_egood, type="response")
-mean(glm1cprob)
+female.dat_egood <- dat_egood %>%
+  filter(geslacht1 == "2")
+#count(female.dat_egood, geslacht1)
 
-# basic gender on chosen pen
-glm1d <- glm(ChosenPen ~ Gender, data=dat_egood, family=binomial)
-summary(glm1d)
-glm1dprob<-predict(glm1d, dat_egood, type="response")
-mean(glm1dprob)
+# MALES:
+fitmale <- glm(ChosenPen ~ Music, data = male.dat_egood, family=binomial)
+fitmale <- tidy(fitmale)
+fitmale
+#### calculate odds 
+fitmale$estimate
+fitmale$estimate[1] + fitmale$estimate[2] ## 1.216
+## odds ratio
+exp(fitmale$estimate[2]) ##4.43
 
-#Groups to outcome
-glm2 <- glm(ChosenPen ~ dat_egood$Groep + Gender, data=dat_egood, family=binomial)
-summary(glm2)
-glm2prob<-predict(glm2, dat_egood, type="response")
-mean(glm2prob)
-
-#outcome is chosen pen, interaction between music and gender 
-glm2a <- glm(ChosenPen ~ Music:Gender, data=dat_egood, family=binomial)
-summary(glm2a)
-glm2aprob<-predict(glm2a, dat_egood, type="response")
-mean(glm2aprob)
-
-#color of pen chosen
-glm3<- glm(Music ~ dat_egood$pen_keus:Gender, data=dat_egood, family=binomial)
-summary(glm3)
+# FEMALES:
+fitfemale <- glm(ChosenPen ~ Music, data = female.dat_egood, family=binomial)
+fitfemale <- tidy(fitfemale)
+fitfemale
+#### calculate odds 
+fitfemale$estimate
+fitfemale$estimate[1] + fitfemale$estimate[2] ## 1.216
+## odds ratio
+exp(fitfemale$estimate[2]) ## 4.43
 
 
+### predicted probabilities = confirmed, gender does not have a moderating effect on the likelihood 
+# of choosing the advertised pen when listening to liked versus disliked music.
+# Males - Disliked Music = 0.77
+(exp(fitmale$estimate[1] + fitmale$estimate[2])) / 
+  (1 + exp(fitmale$estimate[1] + fitmale$estimate[2])) 
+# Males - Liked Music = 0.43
+exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1])) 
 
+# Females - Disliked Music = 0.77
+(exp(fitfemale$estimate[1] + fitfemale$estimate[2])) / 
+  (1 + exp(fitfemale$estimate[1] + fitfemale$estimate[2])) 
+# Males - Liked Music = 0.43
+exp(fitfemale$estimate[1]) / (1 + exp(fitfemale$estimate[1])) 
 
-
-
-
-      
 
 
 
