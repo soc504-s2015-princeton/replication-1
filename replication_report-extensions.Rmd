@@ -5,30 +5,41 @@ date: "May 10, 2015"
 output: html_document
 ---
 
-TABLE OF CONTENTS:
-1 - Synopsis of report.
-2 - Replication of original results.
-  2.1 - Image of replicated table.
+## TABLE OF CONTENTS:
+Section | Contents
+--------|---------
+1       | Synopsis.
+2       | Replication of original results & figures.
+3       | Extensions.
+
+**1 - Synopsis of report.**
+**2 - Replication of original results.**
+  2.1 - Table of frequencies.
+    2.1.1 - Original table (copy/pasted & abbreviated to only show Study 3 results).
+    2.1.2 - Replicated table using R code.
   2.2 - Explanation/description of table results.
   2.3 - Code for replicated table, chi-square analyses and power analyses.
-3 - Extensions.
+**3 - Extensions.**
   3.1 - Extension (A): Frequency graph.
     3.1.1 - Code for graph.
   3.2 - Extension (B): Moderation analysis by gender.
     3.2.1 - Check of cell sizes for each gender.
     3.2.2 - Code for logistic regression for moderation analysis.
 
-(1) Synopsis.
+### (1) Synopsis.
 This report encompasses the work done to first replicate, and then extend, the findings of Study 3 from Vermeulen et al. (2014). The authors of the original article wanted to know whether single exposure to a certain kind of music (music that is either widely liked or disliked) will condition participants to choose one pen over another. Specifically, they hypothesize that participants exposed to liked music will be conditioned to choose the pen that was advertised while the music is playing; and likewise, participants exposed to disliked music will be conditioned to choose an alternative pen to the one advertised while the music is playing.
 
 Section (2) details our replication process. We reproduce the single figure from the article, a frequency table for the outcome of interest in Study 3 as well as all the chi-square analyses.
 
 Section (3) comprises our two-part extension process. First, we create a bar graph of the frequencies detailed in the original article's table. Second, we statistically test for any moderation of our results by gender, using subsetting the data by gender and then conducting separate logistic regression analyses. From there, we looked for any differences between men and women in the predicted probability of the key outcome variable (pen choice).
 
-(2.1) Replicated table.
+### (2.1.1) Original table.
+![Abbreviated figure from the original article.](original-figure-S3.png)
+
+### (2.1.2) Replicated table.
 Note: the `echo = FALSE` parameter was added to the below code chunk to prevent printing of the R code that generated the table. See section (2.3) for the full code.
 
-```{r echo = FALSE}
+```{r echo = FALSE, warning = FALSE}
 
 # Load packages:
 suppressPackageStartupMessages(require(dplyr))
@@ -52,11 +63,11 @@ stargazer(Freq_Table, type = "text", title = "Study 3: Frequencies of Pen Choice
 
 ```
 
-(2.2) Explanation.
+### (2.2) Explanation.
 The table above is a reproduction of the frequencies and percentages of subjects' choice for advertised and non-advertised pen in the Liked Music & Disliked Music conditions, respectively, in Study 3. Note that at the bottom of the table is also the chi-square statistic, p-value and effect size (phi) for the data, indicating a medium-sized effect of music condition on pen choice. The table also demonstrates that the frequency of choice in the Disliked Music condition was in the hypothesized direction: Subjects tended to choose the non-advertised pen when made to listen to disliked music in an advertisement. Please note that the data represented above follows the exclusion criteria set forth in the published article. Specifically, any subjects who had participated in a prior version of the study were excluded (two subjects). In addition, 19 subjects were excluded for their so-called "deviant music evaluations". These subjects were foundd to either somewhat dislike the "liked music" (music attiude score below 3) or somewhat like the "disliked music" (music attitude score above 3).
 
-(2.3) Code for analyses & table.
-Note: the 'eval = FALSE' parameter was added to this code chunk to prevent printing of the code.
+### (2.3) Code for analyses & table.
+Note: the 'eval = FALSE' parameter was added to this code chunk to prevent printing of command outputs superfluous to the results reported in the original paper.
 
 ```{r eval= FALSE}
 
@@ -118,7 +129,6 @@ dat_egood <- dat_e %>%
   filter(music == 1 & avg_att_muz > 3 | music == 2 & avg_att_muz < 3)
 
 ## Redo Chi-Square with subsetted data:
-
 # Test whether music condition is independent of pen choice:
 # Create 2x2 contingency table of frequencies - pen choice by music condition
 tbl2 <- table(dat_egood$music, dat_egood$chose_advertised_pen) 
@@ -169,7 +179,7 @@ stargazer(Freq_Table, type = "text", title = "Study 3: Frequencies of Pen Choice
 
 ```
 
-(3.1) Extension A: Graphing the frequency of responses in each condition.
+### (3.1) Extension A: Graphing the frequency of responses in each condition.
 
 ```{r echo = FALSE}
 
@@ -194,7 +204,7 @@ ggplot(dat_egood,
         axis.text.y = element_text(size = 12))
 ```
 
-(3.1.1) Code for graph.
+#### (3.1.1) Code for graph.
 
 ```{r eval = FALSE}
 
@@ -221,11 +231,11 @@ ggplot(dat_egood,
 
 ```
 
-(3.2) Extension B: Investigating the possible moderation of effects by gender, using a logistical regression.
+### (3.2) Extension B: Investigating the possible moderation of effects by gender, using a logistical regression.
 
 Since the musical stimulus chosen for manipulation in this study was performed by a female artist, it is possible that the strength of aversion to the advertised pen (when paired with a disliked music) would be different by gender. Note: We are quite underpowered to conduct this test as a confirmatory analysis, and there is little theoretical precedent for looking at gender differences in pen choice; thus, this was an entirely exploratory investigation. It is possible that the disliked (and distorted sound) of the female singer's voice impacted women more so than men, such that women had an even greater liklihood of choosing the non-advertised pen when assigned to the disliked-music conditioin. However, as displayed in our analyses of the predicted probabilities below, first for the entire sample, and then for the data subsetted by gender, the likelihood of men and women chosing the advertised or non-advertised pen in each condition is nearly identitical. A greater sampling of men (as well as women) would be needed in order to test this hypothesis with greater statistical power.
 
-(3.2.1) A quick check of N by gender in data.
+#### (3.2.1) A quick check of N by gender in data.
 
 ```{r echo = FALSE}
 
@@ -237,7 +247,7 @@ count(dat_egood, geslacht1)
 
 ```
 
-(3.2.2) Code for logistical regressions.
+#### (3.2.2) Code for logistical regressions.
 
 ```{r eval = FALSE}
 
@@ -330,7 +340,5 @@ exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1]))
 # Males - Liked Music = 0.43
 exp(fitfemale$estimate[1]) / (1 + exp(fitfemale$estimate[1])) 
 
-
-
 ```
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the table. Further, the 'eval = FALSE' parameter was added to the top code chunk to prevent printing of the code.
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the figures. Further, the 'eval = FALSE' parameter was added to the top code chunk to prevent printing of the code along with any generated figures
