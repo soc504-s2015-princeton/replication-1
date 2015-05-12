@@ -1,0 +1,32 @@
+---
+title: "response_to_reviewers"
+author: "Yari & Kyonne"
+date: "Tuesday, May 12, 2015"
+output: html_document
+---
+
+To whom this concerns,
+
+We'd like to thank our reviewers for their generous comments and sage suggestions for how we can improve our write up of the replication report. 
+
+In an effort to better orient the reader to our current context, and details such as the research question from the original article, our approach to the project, and what to expect for our results, we've added a table of contents and synopsis at the top of the document.   
+
+Additionally, some reviewers had questions as to why certain parameters were added to code chunks (e.g., "echo=FALSE", which hides the code from the HTML knitted file); and so, we've added notes under the headings for each section to explain where readers can expect to find corresponding code when it is masked to produce a figure. The code for our graph includes many indentations in order to facilitate the reading of our commands in ggplot2. We have also reviewed this code to ensure that the identation remains consistent throughout. Nevertheless, we acknowledge that this approach to code writing in ggplot2 is a matter of taste.
+
+We'd like to further thank reviewers for pointing out the places wherein the comments in our code included the output statistics. We've taken better advantage of the dynamic functionality of R Markdown documents and embedded those statistical outputs into our text explanations. This will allow for any future knitted files still reflect the most-current statistics, should the underlying dataframe be amended. We've also removed some code chunk parameters so that our knitted HTML file displayed both the code, odds ratios and predicted probabilities from our logistic regression analyses. 
+
+We have also taken time to remove any "View()" functions (whether or not they were included as a comment), since this function can interfere with furture knitting of the RMD file. Many of our variable names have also been amended to feature a consistent coding style throughout the document (e.g., all variable names are no longer capitalised). This will also help the reader better distinguish between when we are assigning/recoding variables and when we are configuring them as labels for our figures in the code. 
+
+Although we acknowledge that some variable names are not entirely descriptive, we've kept many of the names in order to be conscise in our coding style. However, where necessary, we have included more descriptive comments to better help guide our readers. Along those same lines, in our comments we've attempted to better describe the places in our code where we are merely checking our assumptions ahead of statistical analyses and where we are performing tests to directly compare our output to that from the original article. Also, some of the variable naming, particularly within functions, e.g.: "pwr.chisq.test()", was specific to the command structure of our analyses; and so we could not change them. However, we do strongly encourage the use of the R-helper shortcuts (i.e., "??[function here]") for further review of the command structures for functions, should our readers have questions about what certain abbreviations stand to represent. 
+
+As one reviewer pointed out, some code for the logistic regression was superfulous/redundant to analyses. We have deleted the redundancies while also preserving the integrity of the analyses. 
+
+Also, we were asked by a reviewer to consider plotting the results of our logistic regression by gender at the bottom of our report. While we enthusiastically believe in the importance of visualizations, we also recognize the recommendations of many other researchers regarding the consequence of plotting a categorical predictor (condition) against a binary outcome (pen choice) without any mixed-effects: compared to graphs with continuous predictors, a graph of our analyses would contribute much less to readers' understanding of the null finding. As a result, we've amended the parameters of our RMD file in order to ensure that the predicted probabilties for each gender print out clearly for the reader to see and compare directly. Furthermore, we have included summarizing paragraphs for all our statistical analyses. These paragraphs follow the code chunks representing our efforts for each analysis.
+
+And finally, upon the recommendation of several reviewers, we've added an image of the original figure, a table of frequencies, that we sought to reproduce in this project. Please note that this table is an abbreviated version, amended only slightly from the published version to relfect only the information pertinent to the study we replicate (the original contains results from studies for which we lacked data).
+
+Thanks again to all the eyes we've had on our report. We sincerely believe that all the feedback, encouragement and recommendations have resulted in the strongest version of our report possible. And for that, we are grateful!
+
+Regards, 
+
+Yaritza Perez-Hooks & Kyonne Isaac

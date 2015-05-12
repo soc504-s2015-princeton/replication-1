@@ -5,7 +5,7 @@ date: "May 12, 2015"
 output: html_document
 ---
 
-## TABLE OF CONTENTS:
+### TABLE OF CONTENTS:
 Section | Contents
 --------|---------
 1       | Synopsis.
@@ -203,16 +203,18 @@ Note: the parameter "echo = FALSE" was added to this code chunk to prevent the p
 ```{r echo = FALSE}
 
 ggplot(dat_egood, 
-       aes(x = music, fill = chose_advertised_pen)) +
+       aes(x = music, 
+           fill = chose_advertised_pen)) +
   geom_bar(stat = "bin",
            position = position_dodge()) + 
   scale_fill_brewer(name = "Pen Choice", 
-                    labels = c("Not Advertised", "Advertised"), palette = "Set2") +
+                    labels = c("Not Advertised", "Advertised"), 
+                    palette = "Set2") +
   ggtitle("Frequency of Pen Choice By Condition") +
   ylab("Frequency") +
   xlab("Music Conditon") +
-  scale_x_discrete(breaks=c("1", "2"), 
-                   labels=c("Liked", "Disliked")) +
+  scale_x_discrete(breaks = c("1", "2"), 
+                   labels = c("Liked", "Disliked")) +
   theme_bw() + 
   theme(axis.title.x = element_text(face = 'bold', size = 15),
         axis.title.y = element_text(face = 'bold', size = 15), 
@@ -230,16 +232,18 @@ Note: the "eval = FALSE" parameter was added to prevent the rendering of the fig
 
 # Graph the number of participants who chose each pen, by music condition:
 ggplot(dat_egood, 
-       aes(x = music, fill = chose_advertised_pen)) +
+       aes(x = music, 
+           fill = chose_advertised_pen)) +
   geom_bar(stat = "bin",
            position = position_dodge()) + 
   scale_fill_brewer(name = "Pen Choice", 
-                    labels = c("Not Advertised", "Advertised"), palette = "Set2") +
+                    labels = c("Not Advertised", "Advertised"), 
+                    palette = "Set2") +
   ggtitle("Frequency of Pen Choice By Condition") +
   ylab("Frequency") +
   xlab("Music Conditon") +
-  scale_x_discrete(breaks=c("1", "2"), 
-                   labels=c("Liked", "Disliked")) +
+  scale_x_discrete(breaks = c("1", "2"), 
+                   labels = c("Liked", "Disliked")) +
   theme_bw() + 
   theme(axis.title.x = element_text(face = 'bold', size = 15),
         axis.title.y = element_text(face = 'bold', size = 15), 
@@ -270,6 +274,7 @@ count(dat_egood, geslacht1)
 #### (3.2.2) Code and analysis results for logistical regressions.
 
 ```{r}
+# code for the logistic regressions was copy-pasted, then customized to fit the current data, from scripts produced during the class lab sessions (author: Angela R. Dixon)
 
 # Recode dummy variable for music as 0 and 1 for easier interpretation of estimates:
 dat_egood$music <- as.numeric(dat_egood$music)
@@ -353,4 +358,4 @@ exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1]))
 exp(fitfemale$estimate[1]) / (1 + exp(fitfemale$estimate[1])) 
 
 ```
-The predicted probabilities for participants' pen choice in either the liked or disliked conditions did not change after splitting the sample by gender. Males and females were equally likely to choose the same pen, regardless of their assigned condition. However, these results should be qualified by the observation that this data contained over triple the number of female participants as male participants.
+The predicted probabilities for participants' pen choice in either the liked or disliked conditions did not change after splitting the sample by gender. Males and females were equally likely to choose the same pen, regardless of their assigned condition. However, these results should be qualified by the observation that this data contained over triple the number of female participants as male participants (see section 3.2.1).
