@@ -1,7 +1,7 @@
 ---
 title: "Soc504 Replication Project Report"
 author: "Yari & Kyonne" 
-date: "May 10, 2015"
+date: "May 12, 2015"
 output: html_document
 ---
 
@@ -69,7 +69,7 @@ The table above is a reproduction of the frequencies and percentages of subjects
 ### (2.3) Code for analyses & table.
 Note: the 'eval = FALSE' parameter was added to this code chunk to prevent printing of command outputs superfluous to the results reported in the original paper.
 
-```{r eval= FALSE}
+```{r}
 
 # Load data
 dat <- read.csv("GORN_study3.csv", header = TRUE)
@@ -93,16 +93,22 @@ tbl <- table(dat_e$music, dat_e$chose_advertised_pen)
 
 # Chi-Square, no correction, no simulation:
 cs1 <- chisq.test(tbl, correct = FALSE)
+cs1 <- tidy(cs1)
 
 # Power analysis -- Find the power to detect the .35 effect size reported in paper:
 pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)
 
 # Power analysis -- Find the effect size for a test with .8 sensitivity:
 pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
+```
 
-# Analyses on SUBSETTED sample:
+Chi-square analyses on the entire sample replicate the results reported in the article and confirm that participants in the liked and disliked music condition did not choose the advertised pen at an equal rate (chi-square = *`r cs1[1,1]`*, *p = `r cs1[1,2]`*).
 
-# Filter out additional 19 Ss with too positive attitudes in "disliked music" condition (reported ratings above 3) & too negative attitudes in "liked music" condition (reported ratings below 3):
+```{r, eval=FALSE}
+
+## Analyses on SUBSETTED sample:
+
+# Filter out additional 19 Ss with too positive attitudes in "disliked music" condition (reported ratings above 3 in attitudes survey) & too negative attitudes in "liked music" condition (reported ratings below 3):
 
 # Find Cronbach's Alpha for music attitudes scale (for comparison with article):
 dat_music <- dat_e %>%
@@ -115,28 +121,33 @@ dat_e %>%
   group_by(music) %>%
   summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
 
-# Add mean attitude column to dataframe:
-dat_e <- dat_e %>%
-  mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
-
-# Check those means (for comparison with article):
+# Check the grand/group-level means (for comparison with article):
 dat_e %>%
   group_by(music) %>%
   summarise(avg = mean(avg_att_muz))
 
-# Exclude when average attitude > 3 in disliked cond. or average attitude < 3 for liked cond. (1 == liked music, 2 == disliked music)
+```
+
+```{r}
+
+# Exclude participants with average attitude > 3 in disliked condition or average attitude < 3 for liked condition (1 == liked music, 2 == disliked music)
+
+# Add mean attitude column to dataframe:
+dat_e <- dat_e %>%
+  mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
+
+# Create a new dataframe "dat_egood" with filtered participants:
 dat_egood <- dat_e %>%
   filter(music == 1 & avg_att_muz > 3 | music == 2 & avg_att_muz < 3)
 
 ## Redo Chi-Square with subsetted data:
 # Test whether music condition is independent of pen choice:
 # Create 2x2 contingency table of frequencies - pen choice by music condition
-tbl2 <- table(dat_egood$music, dat_egood$chose_advertised_pen) 
-tbl2    
+tbl2 <- table(dat_egood$music, dat_egood$chose_advertised_pen)    
 
 # Chi-Square, no correction, no simulation:
 cs2 <- chisq.test(tbl2, correct = FALSE)
-tidy(cs2)
+cs2 <- tidy(cs2)
 
 # Power analysis -- Find the power to detect .35 effect size reported in paper:
 pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
@@ -144,13 +155,20 @@ pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
 # Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
 pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
 
-# Confidence Intervals (not replicated from paper):
+# Confidence Intervals (these were not reported in paper, just for curiosity):
 #upper (95%)
 #CI95_up <- qchisq(.95, df = 1)
 #lower (5%)
 #CI95_low <- qchisq(.05, df = 1)
 
+```
+
+Chi-square analyses on the subsetted sample replicate from the paper and further confirm that participants in the liked and disliked music condition did not choose the advertised pen at an equal rate (chi-square = *`r cs2[1,1]`*, *p = `r cs2[1,2]`*).
+
+```{r, eval=FALSE}
+
 ## Replicate Table: Frequency table & chi-square statistic of subsetted data
+
 # (replicate "Experiment 3" portion of the table from article)
 
 # Generate count and proportion (percent) tallies for replicating the table:
@@ -180,6 +198,7 @@ stargazer(Freq_Table, type = "text", title = "Study 3: Frequencies of Pen Choice
 ```
 
 ### (3.1) Extension A: Graphing the frequency of responses in each condition.
+Note: the parameter "echo = FALSE" was added to this code chunk to prevent the printing of the code. For the code related to this graph, see section (3.1.1).
 
 ```{r echo = FALSE}
 
@@ -205,6 +224,7 @@ ggplot(dat_egood,
 ```
 
 #### (3.1.1) Code for graph.
+Note: the "eval = FALSE" parameter was added to prevent the rendering of the figure. To observe the figure, see section (3.1).
 
 ```{r eval = FALSE}
 
@@ -235,110 +255,102 @@ ggplot(dat_egood,
 
 Since the musical stimulus chosen for manipulation in this study was performed by a female artist, it is possible that the strength of aversion to the advertised pen (when paired with a disliked music) would be different by gender. Note: We are quite underpowered to conduct this test as a confirmatory analysis, and there is little theoretical precedent for looking at gender differences in pen choice; thus, this was an entirely exploratory investigation. It is possible that the disliked (and distorted sound) of the female singer's voice impacted women more so than men, such that women had an even greater liklihood of choosing the non-advertised pen when assigned to the disliked-music conditioin. However, as displayed in our analyses of the predicted probabilities below, first for the entire sample, and then for the data subsetted by gender, the likelihood of men and women chosing the advertised or non-advertised pen in each condition is nearly identitical. A greater sampling of men (as well as women) would be needed in order to test this hypothesis with greater statistical power.
 
-#### (3.2.1) A quick check of N by gender in data.
+#### (3.2.1) A quick check of N by gender in data show a heavy proportion of females were sampled.
 
 ```{r echo = FALSE}
 
 #Get counts and check values against article for correct coding scheme:
 count(dat_egood, geslacht1)
-#confirmed:
+#confirmed coding scheme:
 ## 1 = male
 ## 2 = female
 
 ```
 
-#### (3.2.2) Code for logistical regressions.
+#### (3.2.2) Code and analysis results for logistical regressions.
 
-```{r eval = FALSE}
+```{r}
 
-#Recode dummy variable for music as 0 and 1 for easier interpretation of estimates:
-Music <- factor(dat_egood$music,
-                    levels = c(1,2),
-                    labels = c("LikedMusic", "DislikedMusic"))
-
+# Recode dummy variable for music as 0 and 1 for easier interpretation of estimates:
 dat_egood$music <- as.numeric(dat_egood$music)
 dat_egood <- dat_egood %>%
   mutate(music.recode2 = (music - 1))
-View(dat_egood)
 
 #Set factor names:
-Music <- factor(dat_egood$music.recode2,
+music_condition <- factor(dat_egood$music.recode2,
                     levels = c(0, 1),
                     labels = c("Liked", "DisLiked"))
 
-ChosenPen <- factor(dat_egood$chose_advertised_pen,
+pen_choice <- factor(dat_egood$chose_advertised_pen,
                 levels = c(1, 0),
                 labels = c("ChoseAdPen", "NotChoseAdPen"))
 
-#Compare counts of each gender in paper to data for coding:
-count(dat_egood, geslacht1)
-## 1 = male
-## 2 = female
-
-# need to check which is which:
-Gender <- factor(dat_egood$geslacht1,
+gender <- factor(dat_egood$geslacht1,
                     levels = c(1,2),
                     labels = c("Male", "Female"))
 
-# for relationship between advertised pen and music, music 2 (disliked) seems significant:
-fit1 <- glm(ChosenPen ~ Music, data = dat_egood, family = binomial)
+# for relationship between advertised pen and music:
+fit1 <- glm(pen_choice ~ music_condition, data = dat_egood, family = binomial)
 fit1 <- tidy(fit1)
 fit1
 
 #### calculate odds 
-fit1$estimate
-fit1$estimate[1] + fit1$estimate[2] ## 1.216
+fit1$estimate[1] + fit1$estimate[2]
+
 ## odds ratio
-exp(fit1$estimate[2]) ##4.43
+exp(fit1$estimate[2])
+
 ## predicted probabilities:
 # Disliked Music:
 (exp(fit1$estimate[1] + fit1$estimate[2])) / (1 + exp(fit1$estimate[1] + fit1$estimate[2]))
 # Liked Music: 
 exp(fit1$estimate[1]) / (1 + exp(fit1$estimate[1])) 
 
-# does the relationship change when looking ONLY at males & ONLY females?
+# Does the relationship change when looking ONLY at males & ONLY females?
 
 male.dat_egood <- dat_egood %>%
   filter(geslacht1 == "1")
+##double-check correct filtering:
 #count(male.dat_egood, geslacht1)
 
 female.dat_egood <- dat_egood %>%
   filter(geslacht1 == "2")
+##double-check correct filtering:
 #count(female.dat_egood, geslacht1)
 
 # MALES:
-fitmale <- glm(ChosenPen ~ Music, data = male.dat_egood, family=binomial)
+fitmale <- glm(pen_choice ~ music_condition, data = male.dat_egood, family=binomial)
 fitmale <- tidy(fitmale)
 fitmale
+
 #### calculate odds 
-fitmale$estimate
-fitmale$estimate[1] + fitmale$estimate[2] ## 1.216
+fitmale$estimate[1] + fitmale$estimate[2]
 ## odds ratio
-exp(fitmale$estimate[2]) ##4.43
+exp(fitmale$estimate[2])
 
 # FEMALES:
-fitfemale <- glm(ChosenPen ~ Music, data = female.dat_egood, family=binomial)
+fitfemale <- glm(pen_choice ~ music_condition, data = female.dat_egood, family=binomial)
 fitfemale <- tidy(fitfemale)
 fitfemale
+
 #### calculate odds 
-fitfemale$estimate
-fitfemale$estimate[1] + fitfemale$estimate[2] ## 1.216
+fitfemale$estimate[1] + fitfemale$estimate[2]
 ## odds ratio
-exp(fitfemale$estimate[2]) ## 4.43
+exp(fitfemale$estimate[2])
 
 ### predicted probabilities = confirmed, gender does not have a moderating effect on the likelihood 
 # of choosing the advertised pen when listening to liked versus disliked music.
-# Males - Disliked Music = 0.77
+# Males - Disliked Music
 (exp(fitmale$estimate[1] + fitmale$estimate[2])) / 
   (1 + exp(fitmale$estimate[1] + fitmale$estimate[2])) 
-# Males - Liked Music = 0.43
+# Males - Liked Music
 exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1])) 
 
-# Females - Disliked Music = 0.77
+# Females - Disliked Music
 (exp(fitfemale$estimate[1] + fitfemale$estimate[2])) / 
   (1 + exp(fitfemale$estimate[1] + fitfemale$estimate[2])) 
-# Males - Liked Music = 0.43
+# Females - Liked Music
 exp(fitfemale$estimate[1]) / (1 + exp(fitfemale$estimate[1])) 
 
 ```
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the figures. Further, the 'eval = FALSE' parameter was added to the top code chunk to prevent printing of the code along with any generated figures
+The predicted probabilities for participants' pen choice in either the liked or disliked conditions did not change after splitting the sample by gender. Males and females were equally likely to choose the same pen, regardless of their assigned condition. However, these results should be qualified by the observation that this data contained over triple the number of female participants as male participants.

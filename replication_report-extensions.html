@@ -83,7 +83,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </tr>
 </tbody>
 </table>
-<p><strong>1 - Synopsis of report.</strong> <strong>2 - Replication of original results.</strong> 2.1 - Table of frequencies. 2.1.1 - Original table (copy/pasted &amp; abbreviated to only show Study 3 results). 2.1.2 - Replicated using R code. 2.2 - Explanation/description of table results. 2.3 - Code for replicated table, chi-square analyses and power analyses. <strong>3 - Extensions.</strong> 3.1 - Extension (A): Frequency graph. 3.1.1 - Code for graph. 3.2 - Extension (B): Moderation analysis by gender. 3.2.1 - Check of cell sizes for each gender. 3.2.2 - Code for logistic regression for moderation analysis.</p>
+<p><strong>1 - Synopsis of report.</strong> <strong>2 - Replication of original results.</strong> 2.1 - Table of frequencies. 2.1.1 - Original table (copy/pasted &amp; abbreviated to only show Study 3 results). 2.1.2 - Replicated table using R code. 2.2 - Explanation/description of table results. 2.3 - Code for replicated table, chi-square analyses and power analyses. <strong>3 - Extensions.</strong> 3.1 - Extension (A): Frequency graph. 3.1.1 - Code for graph. 3.2 - Extension (B): Moderation analysis by gender. 3.2.1 - Check of cell sizes for each gender. 3.2.2 - Code for logistic regression for moderation analysis.</p>
 <div id="synopsis." class="section level3">
 <h3>(1) Synopsis.</h3>
 <p>This report encompasses the work done to first replicate, and then extend, the findings of Study 3 from Vermeulen et al. (2014). The authors of the original article wanted to know whether single exposure to a certain kind of music (music that is either widely liked or disliked) will condition participants to choose one pen over another. Specifically, they hypothesize that participants exposed to liked music will be conditioned to choose the pen that was advertised while the music is playing; and likewise, participants exposed to disliked music will be conditioned to choose an alternative pen to the one advertised while the music is playing.</p>
@@ -136,16 +136,36 @@ tbl &lt;- table(dat_e$music, dat_e$chose_advertised_pen)
 
 # Chi-Square, no correction, no simulation:
 cs1 &lt;- chisq.test(tbl, correct = FALSE)
+cs1 &lt;- tidy(cs1)
 
 # Power analysis -- Find the power to detect the .35 effect size reported in paper:
-pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)
+pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)</code></pre>
+<pre><code>## 
+##      Chi squared power calculation 
+## 
+##               w = 0.39
+##               N = 91
+##              df = 1
+##       sig.level = 0.05
+##           power = 0.9608299
+## 
+## NOTE: N is the number of observations</code></pre>
+<pre class="r"><code># Power analysis -- Find the effect size for a test with .8 sensitivity:
+pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)</code></pre>
+<pre><code>## 
+##      Chi squared power calculation 
+## 
+##               w = 0.2936828
+##               N = 91
+##              df = 1
+##       sig.level = 0.05
+##           power = 0.8
+## 
+## NOTE: N is the number of observations</code></pre>
+<p>Chi-square analyses on the entire sample replicate the results reported in the article and confirm that participants in the liked and disliked music condition did not choose the advertised pen at an equal rate (chi-square = <em>4.0305388</em>, <em>p = 0.0446837</em>).</p>
+<pre class="r"><code>## Analyses on SUBSETTED sample:
 
-# Power analysis -- Find the effect size for a test with .8 sensitivity:
-pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
-
-# Analyses on SUBSETTED sample:
-
-# Filter out additional 19 Ss with too positive attitudes in &quot;disliked music&quot; condition (reported ratings above 3) &amp; too negative attitudes in &quot;liked music&quot; condition (reported ratings below 3):
+# Filter out additional 19 Ss with too positive attitudes in &quot;disliked music&quot; condition (reported ratings above 3 in attitudes survey) &amp; too negative attitudes in &quot;liked music&quot; condition (reported ratings below 3):
 
 # Find Cronbach's Alpha for music attitudes scale (for comparison with article):
 dat_music &lt;- dat_e %&gt;%
@@ -158,42 +178,61 @@ dat_e %&gt;%
   group_by(music) %&gt;%
   summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
 
+# Check the grand/group-level means (for comparison with article):
+dat_e %&gt;%
+  group_by(music) %&gt;%
+  summarise(avg = mean(avg_att_muz))</code></pre>
+<pre class="r"><code># Exclude participants with average attitude &gt; 3 in disliked condition or average attitude &lt; 3 for liked condition (1 == liked music, 2 == disliked music)
+
 # Add mean attitude column to dataframe:
 dat_e &lt;- dat_e %&gt;%
   mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
 
-# Check those means (for comparison with article):
-dat_e %&gt;%
-  group_by(music) %&gt;%
-  summarise(avg = mean(avg_att_muz))
-
-# Exclude when average attitude &gt; 3 in disliked cond. or average attitude &lt; 3 for liked cond. (1 == liked music, 2 == disliked music)
+# Create a new dataframe &quot;dat_egood&quot; with filtered participants:
 dat_egood &lt;- dat_e %&gt;%
   filter(music == 1 &amp; avg_att_muz &gt; 3 | music == 2 &amp; avg_att_muz &lt; 3)
 
 ## Redo Chi-Square with subsetted data:
 # Test whether music condition is independent of pen choice:
 # Create 2x2 contingency table of frequencies - pen choice by music condition
-tbl2 &lt;- table(dat_egood$music, dat_egood$chose_advertised_pen) 
-tbl2    
+tbl2 &lt;- table(dat_egood$music, dat_egood$chose_advertised_pen)    
 
 # Chi-Square, no correction, no simulation:
 cs2 &lt;- chisq.test(tbl2, correct = FALSE)
-tidy(cs2)
+cs2 &lt;- tidy(cs2)
 
 # Power analysis -- Find the power to detect .35 effect size reported in paper:
-pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
-
-# Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
-pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
-
-# Confidence Intervals (not replicated from paper):
+pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)</code></pre>
+<pre><code>## 
+##      Chi squared power calculation 
+## 
+##               w = 0.35
+##               N = 72
+##              df = 1
+##       sig.level = 0.05
+##           power = 0.8437251
+## 
+## NOTE: N is the number of observations</code></pre>
+<pre class="r"><code># Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
+pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)</code></pre>
+<pre><code>## 
+##      Chi squared power calculation 
+## 
+##               w = 0.3301669
+##               N = 72
+##              df = 1
+##       sig.level = 0.05
+##           power = 0.8
+## 
+## NOTE: N is the number of observations</code></pre>
+<pre class="r"><code># Confidence Intervals (these were not reported in paper, just for curiosity):
 #upper (95%)
 #CI95_up &lt;- qchisq(.95, df = 1)
 #lower (5%)
-#CI95_low &lt;- qchisq(.05, df = 1)
+#CI95_low &lt;- qchisq(.05, df = 1)</code></pre>
+<p>Chi-square analyses on the subsetted sample replicate from the paper and further confirm that participants in the liked and disliked music condition did not choose the advertised pen at an equal rate (chi-square = <em>8.5926142</em>, <em>p = 0.0033753</em>).</p>
+<pre class="r"><code>## Replicate Table: Frequency table &amp; chi-square statistic of subsetted data
 
-## Replicate Table: Frequency table &amp; chi-square statistic of subsetted data
 # (replicate &quot;Experiment 3&quot; portion of the table from article)
 
 # Generate count and proportion (percent) tallies for replicating the table:
@@ -222,9 +261,11 @@ stargazer(Freq_Table, type = &quot;text&quot;, title = &quot;Study 3: Frequencie
 </div>
 <div id="extension-a-graphing-the-frequency-of-responses-in-each-condition." class="section level3">
 <h3>(3.1) Extension A: Graphing the frequency of responses in each condition.</h3>
+<p>Note: the parameter “echo = FALSE” was added to this code chunk to prevent the printing of the code. For the code related to this graph, see section (3.1.1).</p>
 <p><img src="data:image/png;base64,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2jABtepVQUAFCKg79YK0YQJq1auCgAoQUHfqBWnDBNSqVwUBFSCg7tQL0oYJqFWvCgIqQEDdqRekDRNQq14VBFSAgLpTL0gbJqBWvSoIqAABdadekDZMQK16VRBQAQLqTr0gbZiAWvWqIKACBNSdekHaMAG16lVBQAUIqDv1grRhAmrVq4KAChBQd+oFacME1KpXBQEVIKDu1AvShgmoVa8KAipAQN2pF6QNE1CrXhUEVICAulMvSBsmoFa9KgioAAF1p16QNkxArXpVEFABAupOvSBtmIBa9aogoAIE1J16QdowAbXqVUFABQioO/WCtGECatWrgoAKEFB36gVpwwTUqlcFARUgoO7UC9KGCahVrwoCKkBA3akXpA0TUKteFQRUgIC6Uy9IGyagVr0qCKgAAXWnXpA2TECtelUQUAEC6k69IG2YgFr1qiCgAgTUnXpB2jABtepVQUAFCKg79YK0YQJq1auCgAoQUHfqBWnDBNSqVwUBFSCg7tQL0oYJqFWvCgIqQEDdqRekDRNQq14VBFSAgLpTL0gbJqBWvSoIqAABdadekDZMQK16VRBQAQLqTr0gbZiAWvWqIKACBNSdekHaMAG16lVBQAUIqDv1grRhAmrVq4KAChBQd+oFacME1KpXBQEVIKDu1AvShgmoVa8KAipAQN2pF6QNE1CrXhUEVICAulMvSBsmoFa9KgioAAF1p16QNkxArXpVEFABAupOvSBtmIBa9aogoAIE1J16QdowAbXqVUFABQioO/WCtGECatWrgoAKEFB36gVpwwTUqlcFARWQBvRfaqlXpIl6QdowAbXqVUFABQioO/WCtGECatWrgoAK8BTenXpB2jABtepVQUAFCKg79YK0YQJq1auCgAoQUHfqBWnDBNSqVwUBFSCg7tQL0oYJqFWvCgIqQEDdqRekDRNQq14VBFSAgLpTL0gbJqBWvSoIqAABdadekDZMQK16VRBQAQLqTr0gbZiAWvWqIKACBNSdekHaMAG16lVBQAUIqDv1grRhAmrVq4KAChBQd+oFacME1KpXBQEVIKDu1AvShgmoVa8KAipAQN2pF6QNE1CrXhUEVICAulMvSBsmoFa9KgioAAF1p16QNkxArXpVEFABAupOvSBtmIBa9aogoAIE1J16QdowAbXqVUFABQioO/WCtGECatWrgoAKEFB36gVpwwTU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" title alt width="672" /></p>
 <div id="code-for-graph." class="section level4">
 <h4>(3.1.1) Code for graph.</h4>
+<p>Note: the “eval = FALSE” parameter was added to prevent the rendering of the figure. To observe the figure, see section (3.1).</p>
 <pre class="r"><code># Graph the number of participants who chose each pen, by music condition:
 ggplot(dat_egood, 
        aes(x = music, fill = chose_advertised_pen)) +
@@ -250,105 +291,109 @@ ggplot(dat_egood,
 <div id="extension-b-investigating-the-possible-moderation-of-effects-by-gender-using-a-logistical-regression." class="section level3">
 <h3>(3.2) Extension B: Investigating the possible moderation of effects by gender, using a logistical regression.</h3>
 <p>Since the musical stimulus chosen for manipulation in this study was performed by a female artist, it is possible that the strength of aversion to the advertised pen (when paired with a disliked music) would be different by gender. Note: We are quite underpowered to conduct this test as a confirmatory analysis, and there is little theoretical precedent for looking at gender differences in pen choice; thus, this was an entirely exploratory investigation. It is possible that the disliked (and distorted sound) of the female singer’s voice impacted women more so than men, such that women had an even greater liklihood of choosing the non-advertised pen when assigned to the disliked-music conditioin. However, as displayed in our analyses of the predicted probabilities below, first for the entire sample, and then for the data subsetted by gender, the likelihood of men and women chosing the advertised or non-advertised pen in each condition is nearly identitical. A greater sampling of men (as well as women) would be needed in order to test this hypothesis with greater statistical power.</p>
-<div id="a-quick-check-of-n-by-gender-in-data." class="section level4">
-<h4>(3.2.1) A quick check of N by gender in data.</h4>
+<div id="a-quick-check-of-n-by-gender-in-data-show-a-heavy-proportion-of-females-were-sampled." class="section level4">
+<h4>(3.2.1) A quick check of N by gender in data show a heavy proportion of females were sampled.</h4>
 <pre><code>## Source: local data frame [2 x 2]
 ## 
 ##   geslacht1  n
 ## 1         1 17
 ## 2         2 55</code></pre>
 </div>
-<div id="code-for-logistical-regressions." class="section level4">
-<h4>(3.2.2) Code for logistical regressions.</h4>
-<pre class="r"><code>#Recode dummy variable for music as 0 and 1 for easier interpretation of estimates:
-Music &lt;- factor(dat_egood$music,
-                    levels = c(1,2),
-                    labels = c(&quot;LikedMusic&quot;, &quot;DislikedMusic&quot;))
-
+<div id="code-and-analysis-results-for-logistical-regressions." class="section level4">
+<h4>(3.2.2) Code and analysis results for logistical regressions.</h4>
+<pre class="r"><code># Recode dummy variable for music as 0 and 1 for easier interpretation of estimates:
 dat_egood$music &lt;- as.numeric(dat_egood$music)
 dat_egood &lt;- dat_egood %&gt;%
   mutate(music.recode2 = (music - 1))
-View(dat_egood)
 
 #Set factor names:
-Music &lt;- factor(dat_egood$music.recode2,
+music_condition &lt;- factor(dat_egood$music.recode2,
                     levels = c(0, 1),
                     labels = c(&quot;Liked&quot;, &quot;DisLiked&quot;))
 
-ChosenPen &lt;- factor(dat_egood$chose_advertised_pen,
+pen_choice &lt;- factor(dat_egood$chose_advertised_pen,
                 levels = c(1, 0),
                 labels = c(&quot;ChoseAdPen&quot;, &quot;NotChoseAdPen&quot;))
 
-#Compare counts of each gender in paper to data for coding:
-count(dat_egood, geslacht1)
-## 1 = male
-## 2 = female
-
-# need to check which is which:
-Gender &lt;- factor(dat_egood$geslacht1,
+gender &lt;- factor(dat_egood$geslacht1,
                     levels = c(1,2),
                     labels = c(&quot;Male&quot;, &quot;Female&quot;))
 
-# for relationship between advertised pen and music, music 2 (disliked) seems significant:
-fit1 &lt;- glm(ChosenPen ~ Music, data = dat_egood, family = binomial)
+# for relationship between advertised pen and music:
+fit1 &lt;- glm(pen_choice ~ music_condition, data = dat_egood, family = binomial)
 fit1 &lt;- tidy(fit1)
-fit1
-
-#### calculate odds 
-fit1$estimate
-fit1$estimate[1] + fit1$estimate[2] ## 1.216
-## odds ratio
-exp(fit1$estimate[2]) ##4.43
-## predicted probabilities:
+fit1</code></pre>
+<pre><code>##                      term   estimate std.error  statistic     p.value
+## 1             (Intercept) -0.2719337 0.3318419 -0.8194677 0.412519630
+## 2 music_conditionDisLiked  1.4883290 0.5216856  2.8529234 0.004331906</code></pre>
+<pre class="r"><code>#### calculate odds 
+fit1$estimate[1] + fit1$estimate[2]</code></pre>
+<pre><code>## [1] 1.216395</code></pre>
+<pre class="r"><code>## odds ratio
+exp(fit1$estimate[2])</code></pre>
+<pre><code>## [1] 4.429687</code></pre>
+<pre class="r"><code>## predicted probabilities:
 # Disliked Music:
-(exp(fit1$estimate[1] + fit1$estimate[2])) / (1 + exp(fit1$estimate[1] + fit1$estimate[2]))
-# Liked Music: 
-exp(fit1$estimate[1]) / (1 + exp(fit1$estimate[1])) 
-
-# does the relationship change when looking ONLY at males &amp; ONLY females?
+(exp(fit1$estimate[1] + fit1$estimate[2])) / (1 + exp(fit1$estimate[1] + fit1$estimate[2]))</code></pre>
+<pre><code>## [1] 0.7714286</code></pre>
+<pre class="r"><code># Liked Music: 
+exp(fit1$estimate[1]) / (1 + exp(fit1$estimate[1])) </code></pre>
+<pre><code>## [1] 0.4324324</code></pre>
+<pre class="r"><code># Does the relationship change when looking ONLY at males &amp; ONLY females?
 
 male.dat_egood &lt;- dat_egood %&gt;%
   filter(geslacht1 == &quot;1&quot;)
+##double-check correct filtering:
 #count(male.dat_egood, geslacht1)
 
 female.dat_egood &lt;- dat_egood %&gt;%
   filter(geslacht1 == &quot;2&quot;)
+##double-check correct filtering:
 #count(female.dat_egood, geslacht1)
 
 # MALES:
-fitmale &lt;- glm(ChosenPen ~ Music, data = male.dat_egood, family=binomial)
+fitmale &lt;- glm(pen_choice ~ music_condition, data = male.dat_egood, family=binomial)
 fitmale &lt;- tidy(fitmale)
-fitmale
-#### calculate odds 
-fitmale$estimate
-fitmale$estimate[1] + fitmale$estimate[2] ## 1.216
-## odds ratio
-exp(fitmale$estimate[2]) ##4.43
-
-# FEMALES:
-fitfemale &lt;- glm(ChosenPen ~ Music, data = female.dat_egood, family=binomial)
+fitmale</code></pre>
+<pre><code>##                      term   estimate std.error  statistic     p.value
+## 1             (Intercept) -0.2719337 0.3318419 -0.8194677 0.412519630
+## 2 music_conditionDisLiked  1.4883290 0.5216856  2.8529234 0.004331906</code></pre>
+<pre class="r"><code>#### calculate odds 
+fitmale$estimate[1] + fitmale$estimate[2]</code></pre>
+<pre><code>## [1] 1.216395</code></pre>
+<pre class="r"><code>## odds ratio
+exp(fitmale$estimate[2])</code></pre>
+<pre><code>## [1] 4.429687</code></pre>
+<pre class="r"><code># FEMALES:
+fitfemale &lt;- glm(pen_choice ~ music_condition, data = female.dat_egood, family=binomial)
 fitfemale &lt;- tidy(fitfemale)
-fitfemale
-#### calculate odds 
-fitfemale$estimate
-fitfemale$estimate[1] + fitfemale$estimate[2] ## 1.216
-## odds ratio
-exp(fitfemale$estimate[2]) ## 4.43
-
-### predicted probabilities = confirmed, gender does not have a moderating effect on the likelihood 
+fitfemale</code></pre>
+<pre><code>##                      term   estimate std.error  statistic     p.value
+## 1             (Intercept) -0.2719337 0.3318419 -0.8194677 0.412519630
+## 2 music_conditionDisLiked  1.4883290 0.5216856  2.8529234 0.004331906</code></pre>
+<pre class="r"><code>#### calculate odds 
+fitfemale$estimate[1] + fitfemale$estimate[2]</code></pre>
+<pre><code>## [1] 1.216395</code></pre>
+<pre class="r"><code>## odds ratio
+exp(fitfemale$estimate[2])</code></pre>
+<pre><code>## [1] 4.429687</code></pre>
+<pre class="r"><code>### predicted probabilities = confirmed, gender does not have a moderating effect on the likelihood 
 # of choosing the advertised pen when listening to liked versus disliked music.
-# Males - Disliked Music = 0.77
+# Males - Disliked Music
 (exp(fitmale$estimate[1] + fitmale$estimate[2])) / 
-  (1 + exp(fitmale$estimate[1] + fitmale$estimate[2])) 
-# Males - Liked Music = 0.43
-exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1])) 
-
-# Females - Disliked Music = 0.77
+  (1 + exp(fitmale$estimate[1] + fitmale$estimate[2])) </code></pre>
+<pre><code>## [1] 0.7714286</code></pre>
+<pre class="r"><code># Males - Liked Music
+exp(fitmale$estimate[1]) / (1 + exp(fitmale$estimate[1])) </code></pre>
+<pre><code>## [1] 0.4324324</code></pre>
+<pre class="r"><code># Females - Disliked Music
 (exp(fitfemale$estimate[1] + fitfemale$estimate[2])) / 
-  (1 + exp(fitfemale$estimate[1] + fitfemale$estimate[2])) 
-# Males - Liked Music = 0.43
+  (1 + exp(fitfemale$estimate[1] + fitfemale$estimate[2])) </code></pre>
+<pre><code>## [1] 0.7714286</code></pre>
+<pre class="r"><code># Females - Liked Music
 exp(fitfemale$estimate[1]) / (1 + exp(fitfemale$estimate[1])) </code></pre>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the figures. Further, the ‘eval = FALSE’ parameter was added to the top code chunk to prevent printing of the code along with any generated figures</p>
+<pre><code>## [1] 0.4324324</code></pre>
+<p>The predicted probabilities for participants’ pen choice in either the liked or disliked conditions did not change after splitting the sample by gender. Males and females were equally likely to choose the same pen, regardless of their assigned condition. However, these results should be qualified by the observation that this data contained over triple the number of female participants as male participants.</p>
 </div>
 </div>
 </div>
