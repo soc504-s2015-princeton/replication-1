@@ -1,0 +1,156 @@
+---
+title: "Replication Report"
+author: "Yari & Kyonne" 
+date: "April 3, 2015"
+output: html_document
+---
+
+(1) Replicated table:
+
+```{r echo = FALSE}
+
+# Load packages
+suppressPackageStartupMessages(require(dplyr))
+suppressPackageStartupMessages(require(tidyr))
+suppressPackageStartupMessages(require(pwr)) 
+suppressPackageStartupMessages(require(broom))
+suppressPackageStartupMessages(require(lsr))
+suppressPackageStartupMessages(require(ggplot2))
+suppressPackageStartupMessages(require(MBESS))
+suppressPackageStartupMessages(require(psych))
+suppressPackageStartupMessages(require(car))
+suppressPackageStartupMessages(require(MASS))
+suppressPackageStartupMessages(require(stargazer))
+
+Liked_Music <- c("21(57%)","16(43%)", "N=72, X^2(1)=8.59, p=0.003, phi=0.35")
+Disliked_Music <- c("8(23%)","27(77%)", "")
+Condition <- c("AdvertisedPen", "NonAdvertisedPen", "Chi-Square")
+Freq_Table = cbind(Condition, Liked_Music, Disliked_Music)
+stargazer(Freq_Table, type = "text", title = "Study 3: Frequencies of Pen Choice for Each Conditon & Chi-Square")
+
+```
+
+(2) Explanation: 
+The table above is a reproduction of the frequencies and percentages of subjects' choice for advertised and non-advertised pen in the Liked Music & Disliked Music conditions, respectively, in Study 3. Note that at the bottom of the table is also the chi-square statistic, p-value and effect size (phi) for the data, indicating a medium-sized effect of music condition on pen choice. The table also demonstrates that the frequency of choice in the Disliked Music condition was in the hypothesized direction: Subjects tended to choose the non-advertised pen when made to listen to disliked music in an advertisement. Please note that the data represented above follows the exclusion criteria set forth in the published article. Specifically, any subjects who had participated in a prior version of the study were excluded (two subjects). In addition, 19 subjects were excluded for their so-called "deviant music evaluations". These subjects were foundd to either somewhat dislike the "liked music" (music attiude score below 3) or somewhat like the "disliked music" (music attitude score above 3).
+
+(3) Code for analyses & table:
+
+```{r eval= FALSE}
+
+# Load data
+dat <- read.csv("GORN_study3.csv", header = TRUE)
+dat <- tbl_df(dat)
+#head(dat)
+#View(dat)
+
+# Designate factors:
+dat$Groep <- as.factor(dat$Groep)
+dat$music <- as.factor(dat$music)
+dat$chose_advertised_pen <- as.factor(dat$chose_advertised_pen)
+
+# Filter out 2 excluded participants who accidentily took study twice in the paper:
+dat_e <- dat %>%
+  filter(excluded == 0)
+#dat_e
+#View(dat_e)
+
+## Analyses on ENTIRE sample:
+
+# Test whether music condition is independent of pen choice:
+# (1 == liked music, 2 == disliked music)
+# (0 == not chosen, 1 == chosen)
+tbl = table(dat_e$music, dat_e$chose_advertised_pen) 
+tbl    
+
+# Chi-Square, no correction, no simulation:
+cs1 <- chisq.test(tbl, correct = FALSE)
+
+# Power analysis -- Find the power to detect .35 effect size reported in paper:
+pwr.chisq.test(w = .39, N = 91, df = 1, sig.level = 0.05, power = NULL)
+
+# Power analysis -- Find the effect size for a test with .8 sensitivity:
+pwr.chisq.test(w = NULL, N = 91, df = 1, sig.level = 0.05, power = .8)
+
+# Analyses on SUBSETTED sample:
+
+# Filter out additional 19 Ss with too positive attitudes in "disliked music" condition & too negative attitudes in "liked music" condition:
+
+# Find Cronbach's Alpha for music attitudes scale (for comparison with article):
+#dat_music <- dat_e %>%
+#  select(att_muz1, att_muz2, att_muz3)
+#View(dat_music)
+#alpha(dat_music, na.rm = TRUE, delete=TRUE)
+
+# Find mean attitudes for each music condition (for comparison with article): 
+#dat_e %>%
+#  group_by(music) %>%
+#  summarise(avg = mean(c(att_muz1, att_muz2, att_muz3)))
+
+# Add mean attitude column to dataframe:
+dat_e <- dat_e %>%
+  mutate(avg_att_muz = (att_muz1 + att_muz2 + att_muz3) / 3)
+#View(dat_e)
+
+# Check those means (for comparison with article):
+#dat_e %>%
+#  group_by(music) %>%
+#  summarise(avg = mean(avg_att_muz))
+
+# Exclude when average attitude > 3 in disliked cond. or average attitude <3 for liked cond. (1 == liked music, 2 == disliked music)
+dat_egood <- dat_e %>%
+  filter(music == 1 & avg_att_muz > 3 | music == 2 & avg_att_muz < 3)
+#View(dat_egood)
+
+## Redo Chi-Square with subsetted data:
+
+# Test whether music condition is independent of pen choice:
+# Create 2x2 contingency table of frequencies - pen choice by music condition
+tbl2 = table(dat_egood$music, dat_egood$chose_advertised_pen) 
+tbl2    
+
+# Chi-Square, no correction, no simulation:
+cs2 <- chisq.test(tbl2, correct = FALSE)
+tidy(cs2)
+
+# Power analysis -- Find the power to detect .35 effect size reported in paper:
+pwr.chisq.test(w = .35, N = 72, df = 1, sig.level = 0.05, power = NULL)
+
+# Power analysis -- Find the effect size for a test with minimum of .8 sensitivity:
+pwr.chisq.test(w = NULL, N = 72, df = 1, sig.level = 0.05, power = .8)
+
+# Confidence Intervals (not replicated from paper):
+#upper (95%)
+#CI95_up <- qchisq(.95, df = 1)
+#lower (5%)
+#CI95_low <- qchisq(.05, df = 1)
+
+## Replicate Table: Frequency table & chi-square statistic of subsetted data
+# (replicate "Experiment 3" portion of the table from article)
+
+# Generate count and proportion (percent) tallies for replicating the table:
+# Amongst those in Liked Music condition:
+dat_egoodLike <- dat_egood %>%
+  filter(music == 1)
+dat_egoodLike %>%
+  group_by(chose_advertised_pen) %>%
+  summarise(n = n(),
+            percent = n / nrow(dat_egoodLike) * 100)
+
+# Amongst those in Disliked Music condition:
+dat_egoodDislike <- dat_egood %>%
+  filter(music == 2)
+dat_egoodDislike %>%
+  group_by(chose_advertised_pen) %>%
+  summarise(n = n(),
+            percent = n / nrow(dat_egoodDislike) * 100)
+
+# Generate table:
+Liked_Music <- c("21(57%)","16(43%)", "N=72, X^2(1)=8.59, p=0.003, phi=0.35")
+Disliked_Music <- c("8(23%)","27(77%)", "")
+Condition <- c("AdvertisedPen", "NonAdvertisedPen", "Chi-Square")
+Freq_Table = cbind(Condition, Liked_Music, Disliked_Music)
+stargazer(Freq_Table, type = "text", title = "Study 3: Frequencies of Pen Choice for Each Conditon & Chi-Square")
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the table. Further, the "eval = FALSE" parameter was added to the top code chunk to prevent printing of the code.
